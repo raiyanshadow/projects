@@ -88,9 +88,10 @@ combination is not a good idea. Use a sophisticated algorithm for a simple and t
 
 */  
 
-#import <stdio.h>
+// dont use this file if you are using a language other than c or c++
+#import <stdio.h>       
 #import <stdlib.h>
-#import <iostream>
+#include <iostream>
 
 using namespace std
 
