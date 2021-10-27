@@ -11,8 +11,8 @@ int shortest_sorts(vector<int> a, int b);
 
 int main()
 {
-    string st1;
-    cin >> st1;
+    	string st1;
+    	cin >> st1;
 	
 	int a = st1.size();
 	vector<int> num = str_to_int(st1);
@@ -39,8 +39,8 @@ vector<int> str_to_int(string a)
 }
 
 int shortest_sorts(vector<int> a, int b)
-{
-    bool x = false;
+{	
+    	bool x = false;
 	int swaps = 0;
 
 	for (int i = 1; i < b; i++)
