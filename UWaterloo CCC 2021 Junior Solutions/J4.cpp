@@ -16,7 +16,6 @@ int main()
 	
 	int a = st1.size();
 	vector<int> num = str_to_int(st1);
-	st2 = int_to_str(num, a);
    
 	cout << shortest_sorts(num, a) << "\n\n";
 
