@@ -17,7 +17,7 @@ int binArrayNumLen(int* a);
 
 int main()
 {
-    int code[TYPE] = { 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 }; // change this to your liking, or make it dynamic :)
+    int code[TYPE] = { 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 }; // change this to your liking, or make it dynamic :)
     int count = 0;
 
     for (int i = 0; i < TYPE; i++)
@@ -74,14 +74,24 @@ int main()
 
     int *finum = malloc(MAXLEN * sizeof(int));
     int finfinum = 0;
+    int temp = 0;
 
     for (int i = 0; i < MAXLEN; i++)
     {
         for (int j = 0; j < count; j++)
         {
-            finum[i] += finbin[j][i];
+            temp += finbin[j][i];
         }
-        finum[i] %= 2;
+        if (temp % 2 == 0)
+        {
+            temp = 0;
+        }
+        else
+        {
+            temp = 1;
+        }
+        finum[i] = temp;
+        temp = 0;
     }
 
     for (int i = MAXLEN - binArrayNumLen(finum), k = MAXLEN - 1; i < MAXLEN; i++, k--)
