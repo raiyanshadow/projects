@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-#define TYPE 32
+#define TYPE 64
 
 int MAXLEN = log10(TYPE) / log10(2);
 
@@ -13,11 +13,10 @@ long int binConvert(long int a);
 int binBag(long int a, int index);
 int numLen(long int a);
 int revBinConvert(int* a);
-int binArrayNumLen(int* a);
 
 int main()
 {
-    int code[TYPE] = { 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 }; // change this to your liking, or make it dynamic :)
+    int code[TYPE] = { 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1 }; // change this to your liking, or make it dynamic :)
     int count = 0;
 
     for (int i = 0; i < TYPE; i++)
@@ -73,7 +72,6 @@ int main()
     }
 
     int *finum = malloc(MAXLEN * sizeof(int));
-    int finfinum = 0;
     int temp = 0;
 
     for (int i = 0; i < MAXLEN; i++)
@@ -94,17 +92,12 @@ int main()
         temp = 0;
     }
 
-    for (int i = MAXLEN - binArrayNumLen(finum), k = MAXLEN - 1; i < MAXLEN; i++, k--)
-    {
-        finfinum += finum[i] * pow(10, k);
-    }
-
     for (int i = 0; i < MAXLEN; i++)
     {
         printf("= %i\n", finum[i]);
     }
 
-    printf("Error found at 0x%li (Position %i)", finfinum, revBinConvert(finum));
+    printf("Error found at 0x%li (Position %i)", binConvert(revBinConvert(finum)), revBinConvert(finum));
     free(finum);
     free(finbin);
     free(postBin);
@@ -179,26 +172,4 @@ int revBinConvert(int* a)
     }
 
     return actual;
-}
-
-int binArrayNumLen(int* a)
-{
-    int pos = 0;
-    int haveseen = 0;
-    int i = 0;
-    int c = 0;
-    while (haveseen == 0)
-    {
-        if (a[i] == 1)
-        {
-            pos = i;
-            haveseen = 1;
-        }
-        else
-        {
-            i++;
-        }
-    }
-
-    return MAXLEN - pos;
 }
