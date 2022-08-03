@@ -91,32 +91,45 @@ combination is not a good idea. Use a sophisticated algorithm for a simple and t
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+#include <limits.h>
 
 typedef struct {
 	unsigned int coordinateNum;
 	unsigned int settingNum;
-	long long** coordinates;
+    int** coordinates;
 } coordinateSet;
 
 coordinateSet allocateCoordinateSet(unsigned int coordinateNum, unsigned int settingNum);
 void freeCoordinateSet(coordinateSet* c);
+void freeCoordinateSetDeep(coordinateSet* c);
 unsigned int coordinateIdentifier(char* filename);
 unsigned int settingIdentifier(char* filename);
 coordinateSet newCoordSet(char* filename);
-unsigned long long charPtrToLL(char* c);
+int charPtrToInt(char* c, int size);
 
 // restrictions set by challenge 
 #define MAX_COORDINATES 1000
 #define MAX_SETTINGS 100
 #define MAX_VALUE 999999999
 
-const coordinateSet INVALID = { 0, 0, 0LL };
+const coordinateSet INVALID = { 0, 0, 0 };
 
 int main()
 {
 	// testing
-	printf("Coords = %d\nSettings = %d\n", coordinateIdentifier("trails.txt"), settingIdentifier("trails.txt"));
-	coordinateSet a = newCoordSet("trails.txt");
+	coordinateSet c = newCoordSet("trails.txt");
+
+	for (unsigned int i = 0; i < c.coordinateNum; i++)
+	{
+		for (unsigned int j = 0; j < c.settingNum; j++)
+		{
+			printf("c[%d][%d] = %d\n", i, j, c.coordinates[i][j]);
+		}
+	}
+
+	freeCoordinateSetDeep(&c);
+
 	return 0;
 }
 
@@ -134,11 +147,11 @@ coordinateSet allocateCoordinateSet(unsigned int settingNum, unsigned int coordi
 	ret.settingNum = settingNum;
 	ret.coordinateNum = coordinateNum;
 	// allocate coordinateSet
-	ret.coordinates = malloc(coordinateNum * sizeof(long long));
+	ret.coordinates = malloc(coordinateNum * sizeof(int*));
 	for (unsigned int i = 0; i < coordinateNum; i++)
 	{
 		// allocate for individual elements in a single coordinate
-		ret.coordinates[i] = malloc(settingNum * sizeof(long long));
+		ret.coordinates[i] = malloc(settingNum * sizeof(int));
 	}
 	return ret;
 }
@@ -153,9 +166,25 @@ coordinateSet allocateCoordinateSet(unsigned int settingNum, unsigned int coordi
 void freeCoordinateSet(coordinateSet* c)
 {
 	free(c->coordinates);
-	c->coordinates = NULL;
 	c->settingNum = 0;
 	c->coordinateNum = 0;
+}
+
+/*
+	Frees all values in individual coordinates in a coordinateSet structure
+	Paremeter:
+	- (coordinateSet*) c
+
+	Returns nothing
+*/
+void freeCoordinateSetDeep(coordinateSet* c)
+{
+	for (unsigned int i = 0; i < c->coordinateNum; i++)
+	{
+		free(c->coordinates[i]);
+	}
+
+	freeCoordinateSet(c);
 }
 
 
@@ -192,7 +221,7 @@ unsigned int coordinateIdentifier(char* filename)
 	fclose(f);
 
 	// increment by 1 since last line is not counted
-	return coordinateNum+1;
+	return coordinateNum + 1;
 }
 
 /*
@@ -208,6 +237,7 @@ unsigned int settingIdentifier(char* filename)
 	FILE* f = fopen(filename, "r");
 	int ch = 0;
 	unsigned int settingNum = 0;
+	unsigned int checker = 0;
 
 	// base case
 	if (f == NULL)
@@ -218,7 +248,6 @@ unsigned int settingIdentifier(char* filename)
 	// go through each character until we reach a new line
 	while (ch != '\n')
 	{
-		
 		ch = fgetc(f);
 		// increment settingNum if we reach a period sign, which seperates a setting
 		if (ch == '.')
@@ -226,10 +255,34 @@ unsigned int settingIdentifier(char* filename)
 			settingNum++;
 		}
 	}
+
+	while (ch != EOF)
+	{
+		ch = fgetc(f);
+		// increment settingNum if we reach a period sign, which seperates a setting
+		if (ch == '.')
+		{
+			checker++;
+		}
+
+		// check if all coordinates have the same amount of settings
+		if (ch == '\n')
+		{
+			checker++;
+			if (checker != settingNum + 1)
+			{
+				printf("Invalid stream, coordinates have varied sizes!\n");
+				fclose(f);
+				exit(EXIT_FAILURE);
+			}
+			checker = 0;
+		}
+	}
+
 	fclose(f);
 
 	// increment settingNum since there is no period sign at the last setting
-	return settingNum+1;
+	return settingNum + 1;
 }
 
 /*
@@ -263,7 +316,7 @@ coordinateSet newCoordSet(char* filename)
 	FILE* f = fopen(filename, "r");
 	int ch = '0';
 	// allocate a currentNum char pointer to keep track of the current setting of a coordinate
-	char* currentNum = (char*)malloc(1 * sizeof(char));
+	char* currentNum = malloc(1 * sizeof(char));
 	// count to keep track of length of currentNum
 	unsigned int count = 0;
 
@@ -276,19 +329,39 @@ coordinateSet newCoordSet(char* filename)
 			count = 0;
 			currentNum = NULL;
 			// reallocate for one character and the terminator
-			currentNum = (char*)realloc(currentNum, (count + 1) * sizeof(char) + 1);
+			currentNum = realloc(currentNum, (count + 1) * sizeof(char) + 1);
 			// go thorugh each character of the text file until we reach a period sign, a new line or the end of the file
 			while (ch != '.' && ch != '\n' && ch != EOF)
 			{
-				// check if we are currently looking a number
+				// check if we are currently looking at a number
 				if (ch >= '0' && ch <= '9')
 				{
 					currentNum = (char*)realloc(currentNum, (count + 1) * sizeof(char) + 1);
 					// set current pointer value to what we are looking at
-					*(currentNum + count) = ch;
+					currentNum[count] = ch;
 					count++;
 				}
+
+				// check for negative, deny if existing
+				if (ch == '-')
+				{
+					printf("Unhandled negative signature\n");
+					free(currentNum);
+					freeCoordinateSetDeep(&ret);
+					exit(EXIT_FAILURE);
+				}
+
 				ch = fgetc(f);
+			}
+			ret.coordinates[i][j] = charPtrToInt(currentNum, count);
+
+			// number should be less than or equal to max value and overflow control
+			if (ret.coordinates[i][j] > MAX_VALUE)
+			{
+				printf("number exceeds limit");
+				free(currentNum);
+				freeCoordinateSet(&ret);
+				exit(EXIT_FAILURE);
 			}
 		}
 	}
@@ -296,8 +369,7 @@ coordinateSet newCoordSet(char* filename)
 	// frees currentNum since we don't need it anymore
 	free(currentNum);
 
-	// still more to do here just placeholder
-	return INVALID;
+	return ret;
 }
 
 /*
@@ -307,8 +379,16 @@ coordinateSet newCoordSet(char* filename)
 
 	Returns an unsigned long long integer that was combined from the char pointer
 */
-unsigned long long charPtrToLL(char* c)
+int charPtrToInt(char* c, int size)
 {
-	// working on it
-	return 0LL;
+	int ret = 0;
+	unsigned int count = 0;
+
+	// iterate through pointer
+	for (int i = size - 1; i >= 0; i--, count++)
+	{
+		ret += (c[count] - 48) * pow(10, i);
+	}
+
+	return ret;
 }
