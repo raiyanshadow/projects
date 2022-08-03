@@ -94,12 +94,20 @@ combination is not a good idea. Use a sophisticated algorithm for a simple and t
 #include <math.h>
 #include <limits.h>
 
-typedef struct {
+typedef struct coordinateSet {
 	unsigned int coordinateNum;
 	unsigned int settingNum;
     int** coordinates;
 } coordinateSet;
 
+typedef struct linGraph {
+	unsigned int v;
+	int* nodes;
+	int* weights;
+} linGraph;
+
+
+// boring stuff
 coordinateSet allocateCoordinateSet(unsigned int coordinateNum, unsigned int settingNum);
 void freeCoordinateSet(coordinateSet* c);
 void freeCoordinateSetDeep(coordinateSet* c);
@@ -107,6 +115,13 @@ unsigned int coordinateIdentifier(char* filename);
 unsigned int settingIdentifier(char* filename);
 coordinateSet newCoordSet(char* filename);
 int charPtrToInt(char* c, int size);
+int* coordinateSeperation(coordinateSet* c, int idx);
+
+linGraph allocateGraph(unsigned int v);
+linGraph coordinatesToGraph(int* arr, int size);
+void freeGraph(linGraph* g);
+
+// algorithms
 
 // restrictions set by challenge 
 #define MAX_COORDINATES 1000
@@ -126,6 +141,26 @@ int main()
 		{
 			printf("c[%d][%d] = %d\n", i, j, c.coordinates[i][j]);
 		}
+	}
+
+	printf("\n");
+
+	for (unsigned int i = 0; i < c.settingNum; i++)
+	{
+		int* arr = coordinateSeperation(&c, i);
+		linGraph g = coordinatesToGraph(arr, c.coordinateNum);
+		for (unsigned int j = 0; j < g.v; j++)
+		{
+			printf("%d -> ", g.nodes[j]);
+		}
+		printf("\n");
+		for (unsigned int j = 0; j < g.v - 1; j++)
+		{
+			printf("%d, ", g.weights[j]);
+		}
+		printf("\n\n");
+		freeGraph(&g);
+		free(arr);
 	}
 
 	freeCoordinateSetDeep(&c);
@@ -375,7 +410,7 @@ coordinateSet newCoordSet(char* filename)
 /*
 	Converts a char pointer to a long long integer
 	Parameter:
-	(char *) c which is the char pointer that contains a number in string form
+	- (char *) c which is the char pointer that contains a number in string form
 
 	Returns an unsigned long long integer that was combined from the char pointer
 */
@@ -387,8 +422,80 @@ int charPtrToInt(char* c, int size)
 	// iterate through pointer
 	for (int i = size - 1; i >= 0; i--, count++)
 	{
+		// convert char to int using ASCII arithmetic
 		ret += (c[count] - 48) * pow(10, i);
 	}
 
 	return ret;
+}
+
+/*
+	Seperates numbers from each coordinate and is put into int array
+	Parameter:
+	- (coordinateSet *) c which is the coordinateSet structure
+	- (int) idx which specifies the setting we want to seperate
+	
+	Returns an integer array
+*/
+int* coordinateSeperation(coordinateSet* c, int idx)
+{
+	if (idx > c->settingNum)
+	{
+		printf("SIGSEV requesting unbounded data\n");
+		return -1;
+	}
+
+	int* ret = malloc(c->coordinateNum * sizeof(int));
+
+	for (unsigned int i = 0; i < c->coordinateNum; i++)
+	{
+		ret[i] = c->coordinates[i][idx];
+	}
+
+	return ret;
+}
+
+/*
+	Allocates a linear graph structure
+	Parameter:
+	- (unsigned int) v which is the number of vertices
+
+	Returns a linear graph structure
+*/
+linGraph allocateGraph(unsigned int v)
+{
+	linGraph ret;
+	ret.v = v;
+	ret.nodes = malloc(v * sizeof(int));
+	ret.weights = malloc((v - 1) * sizeof(int));
+
+	return ret;
+}
+
+linGraph coordinatesToGraph(int* arr, int size)
+{
+	if (!arr)
+	{
+		return;
+	}
+
+	linGraph ret = allocateGraph(size);
+
+	for (unsigned int i = 0; i < ret.v; i++)
+	{
+		ret.nodes[i] = arr[i]; 
+		if (i > 0)
+		{
+			ret.weights[i - 1] = abs(arr[i] - arr[i - 1]);
+		}
+	}
+
+	return ret;
+}
+
+void freeGraph(linGraph* g)
+{
+	g->v = 0;
+	free(g->nodes);
+	free(g->weights);
 }
