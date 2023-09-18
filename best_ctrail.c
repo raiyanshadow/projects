@@ -106,8 +106,7 @@ typedef struct linGraph {
 	int* weights;
 } linGraph;
 
-
-// boring stuff
+// coordinate constructors and functions
 coordinateSet allocateCoordinateSet(unsigned int coordinateNum, unsigned int settingNum);
 void freeCoordinateSet(coordinateSet* c);
 void freeCoordinateSetDeep(coordinateSet* c);
@@ -117,6 +116,7 @@ coordinateSet newCoordSet(char* filename);
 int charPtrToInt(char* c, int size);
 int* coordinateSeperation(coordinateSet* c, int idx);
 
+// graph constructors
 linGraph allocateGraph(unsigned int v);
 linGraph coordinatesToGraph(int* arr, int size);
 void freeGraph(linGraph* g);
@@ -171,7 +171,7 @@ int main()
 /* 
 	Allocate a coordinateSet structure
 	Parameters: 
-	- (unsigned int) settingNum which is the amount of numbers in a single coordinate, visuall seperated by a period sign, think ip addresses
+	- (unsigned int) settingNum which is the amount of numbers in a single coordinate, visually seperated by a period sign, think ip addresses
 	- (unsigned int) coordinateNum which is the total number of coordinates
 
 	Returns an empty coordinateSet structure

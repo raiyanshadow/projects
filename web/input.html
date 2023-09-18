@@ -1,0 +1,46 @@
+HTTP/1.1 200 OK
+Server: 127.0.01
+Content-Type: text/html; charset=utf-8
+Content-Length: 849
+
+<html>
+
+<head>
+    <title>Send Message</title>
+
+    <style>
+        * {
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebucket MS', sans-serif;
+            font-size: 32px;
+        }
+
+        body {
+            display : flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        label {
+            padding : 15px;
+        }
+
+        input {
+            padding : 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <form action="#" method="post">
+        <label for="inputa">A:</label>
+        <input type="text" id="inputa" name="msg[1]" required>
+        <br>
+        <label for="">B:</label>
+        <input type="text" id="inputb" name="msg[2]" required>
+        <br>
+        <input type="submit" value="Send">
+    </form>
+</body>
+
+</html>
